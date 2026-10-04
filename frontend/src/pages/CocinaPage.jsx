@@ -1,0 +1,106 @@
+import React, { useState, useEffect } from 'react';
+import { ChefHat, Clock, Check, UtensilsCrossed } from 'lucide-react';
+
+const getStoredPedidos = () => {
+  const stored = localStorage.getItem('pedidos_sabores_urbano');
+  if (stored) return JSON.parse(stored);
+  return [];
+};
+
+const savePedidos = (pedidos) => {
+  localStorage.setItem('pedidos_sabores_urbano', JSON.stringify(pedidos));
+};
+
+import PedidoCard from '../components/PedidoCard';
+
+export default function CocinaPage() {
+  const [pedidos, setPedidos] = useState([]);
+
+  // Load periodically to simulate real-time kitchen display (RF11)
+  useEffect(() => {
+    const loadPedidos = () => {
+      setPedidos(getStoredPedidos());
+    };
+    loadPedidos();
+    const interval = setInterval(loadPedidos, 3000); // refresh every 3 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleUpdateStatus = (pedidoId, nuevoEstado) => {
+    const updatedPedidos = pedidos.map(p => {
+      if (p.id === pedidoId) {
+        return { ...p, estado: nuevoEstado };
+      }
+      return p;
+    });
+    setPedidos(updatedPedidos);
+    savePedidos(updatedPedidos);
+  };
+
+  // Cocina solo ve pedidos que no estén "Pagado" (y filtramos los que no tienen items)
+  const pedidosCocina = pedidos.filter(p => p.items.length > 0 && p.estado !== 'Listo');
+  const pedidosListos = pedidos.filter(p => p.items.length > 0 && p.estado === 'Listo');
+
+  return (
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+          <div>
+            <h1 className="text-brand-primary text-3xl md:text-4xl mb-2 flex items-center gap-3">
+              <ChefHat className="w-8 h-8" />
+              Monitor KDS (Cocina)
+            </h1>
+            <p className="text-gray-600">Visualiza pedidos pendientes y actualiza su estado de preparación.</p>
+          </div>
+          <div className="mt-4 md:mt-0 flex gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-status-ocupado"></div>
+              <span className="text-sm font-medium">Pendiente</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-brand-accent"></div>
+              <span className="text-sm font-medium">Preparando</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-status-disponible"></div>
+              <span className="text-sm font-medium">Listo</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="text-2xl text-brand-primary mb-4 border-b-2 border-brand-primary pb-2 inline-block">Pedidos Activos</h2>
+        
+        {pedidosCocina.length === 0 ? (
+          <div className="bg-white p-12 text-center rounded-xl shadow-sm border border-gray-100">
+            <UtensilsCrossed className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-gray-500">No hay pedidos pendientes</h3>
+            <p className="text-gray-400">La cocina está al día.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {pedidosCocina.map(pedido => (
+              <PedidoCard key={pedido.id} pedido={pedido} onUpdateStatus={handleUpdateStatus} />
+            ))}
+          </div>
+        )}
+
+        {pedidosListos.length > 0 && (
+          <>
+            <h2 className="text-2xl text-status-disponible mb-4 border-b-2 border-status-disponible pb-2 inline-block">Recientemente Listos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 opacity-75">
+              {pedidosListos.map(pedido => (
+                <div key={pedido.id} className="bg-white rounded-lg shadow border-l-4 border-status-disponible p-4 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-gray-700">{pedido.mesaNombre}</h4>
+                    <p className="text-xs text-gray-500">{pedido.items.length} productos</p>
+                  </div>
+                  <Check className="text-status-disponible w-6 h-6" />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
