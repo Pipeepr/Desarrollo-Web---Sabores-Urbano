@@ -83,6 +83,7 @@ export default function PedidosPage() {
       if (p.id === pedidoActual.id) {
         return {
           ...p,
+          estado: 'Pendiente', // Volver a pendiente para que la cocina vea el nuevo producto
           items: [...p.items, nuevoItem],
           total: p.total + (nuevoItem.precio * nuevoItem.cantidad)
         };
@@ -173,9 +174,12 @@ export default function PedidosPage() {
                   Abrir Pedido
                 </button>
               ) : (
-                <div className="mt-4 bg-orange-50 text-brand-secondary p-3 rounded-md flex items-center gap-2 border border-brand-secondary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Pedido ya abierto para esta mesa</span>
+                <div className="mt-4 bg-green-50 text-status-disponible p-3 rounded-md flex flex-col gap-2 border border-green-200">
+                  <div className="flex items-center gap-2 font-medium">
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Mesa con pedido activo</span>
+                  </div>
+                  <p className="text-sm opacity-90">Puedes seguir agregando productos a esta mesa en el panel de la derecha.</p>
                 </div>
               )}
             </div>
