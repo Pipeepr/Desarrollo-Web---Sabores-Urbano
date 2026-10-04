@@ -167,13 +167,13 @@ export default function PedidosPage() {
               {!pedidoActual ? (
                 <button 
                   onClick={handleAbrirPedido}
-                  className="mt-4 w-full bg-brand-primary text-white py-2 px-4 rounded-md font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+                  className="mt-4 w-full bg-brand-primary text-white py-2 px-4 rounded-md font-medium hover:opacity-90 transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Abrir Pedido
                 </button>
               ) : (
-                <div className="mt-4 bg-brand-secondary bg-opacity-10 text-brand-secondary p-3 rounded-md flex items-center gap-2">
+                <div className="mt-4 bg-orange-50 text-brand-secondary p-3 rounded-md flex items-center gap-2 border border-brand-secondary">
                   <CheckCircle className="w-5 h-5" />
                   <span>Pedido ya abierto para esta mesa</span>
                 </div>
@@ -243,7 +243,7 @@ export default function PedidosPage() {
                   </div>
                   <button 
                     type="submit"
-                    className="mt-4 w-full md:w-auto bg-brand-secondary text-white py-2 px-6 rounded-md font-medium hover:bg-opacity-90 transition-colors"
+                    className="mt-4 w-full md:w-auto bg-brand-secondary text-white py-2 px-6 rounded-md font-medium hover:opacity-90 transition-colors"
                   >
                     Agregar a la Comanda
                   </button>

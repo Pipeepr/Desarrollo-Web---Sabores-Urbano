@@ -56,7 +56,7 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
           ) : (
             <button 
               onClick={() => onUpdateStatus(pedido.id, 'Listo')}
-              className="w-full bg-status-disponible text-white py-3.5 rounded-xl font-semibold shadow-sm hover:bg-opacity-90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
+              className="w-full bg-status-disponible text-white py-3.5 rounded-xl font-semibold shadow-sm hover:opacity-90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
             >
               <Check className="w-5 h-5 stroke-[3]" /> Marcar como Listo
             </button>
