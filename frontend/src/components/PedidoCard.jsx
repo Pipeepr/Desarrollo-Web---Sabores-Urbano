@@ -4,51 +4,48 @@ import { Clock, Check } from 'lucide-react';
 export default function PedidoCard({ pedido, onUpdateStatus }) {
   // Configuración visual según el estado (KDS Moderno)
   const isPendiente = pedido.estado === 'Pendiente';
-  const headerBg = isPendiente ? 'bg-red-500' : 'bg-brand-accent';
-  // El Dorado (brand-accent) necesita texto oscuro para poder leerse bien
+  const headerBg = isPendiente ? 'bg-status-ocupado' : 'bg-brand-accent';
   const headerText = isPendiente ? 'text-white' : 'text-gray-900';
-  const badgeBg = isPendiente ? 'bg-white/20' : 'bg-white/40 text-gray-900';
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex flex-col h-full border border-gray-100/50">
-      {/* Cabecera Estilo Ticket/KDS (Header completamente relleno de color) */}
-      <div className={`${headerBg} ${headerText} px-6 py-4 flex justify-between items-start`}>
-        <div>
-          <h3 className="font-bold text-xl mb-1 tracking-tight">{pedido.mesaNombre}</h3>
-          <div className="flex items-center gap-1.5 text-sm opacity-90 font-medium">
-            <Clock className="w-4 h-4" /> {pedido.hora}
-          </div>
+    <div className="bg-white rounded shadow-sm border border-gray-300 flex flex-col h-full overflow-hidden">
+      {/* Cabecera Estilo Ticket (Compacta y Profesional) */}
+      <div className={`${headerBg} ${headerText} px-3 py-2 flex justify-between items-center border-b border-black/10`}>
+        <div className="flex flex-col">
+          <span className="font-bold text-lg leading-none tracking-tight">{pedido.mesaNombre}</span>
+          <span className="text-[11px] opacity-90 mt-1 flex items-center gap-1 font-medium">
+            <Clock className="w-3 h-3" /> {pedido.hora}
+          </span>
         </div>
-        <div className={`${badgeBg} px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-sm`}>
+        <div className="bg-black/15 px-2 py-1 rounded text-[10px] font-black tracking-widest uppercase">
           {pedido.estado}
         </div>
       </div>
       
-      {/* Lista de Productos */}
-      <div className="p-6 flex-grow flex flex-col">
-        <ul className="space-y-5 mb-6 flex-grow">
+      {/* Lista de Productos tipo Comanda */}
+      <div className="p-0 flex-grow">
+        <ul className="divide-y divide-gray-100">
           {pedido.items.map(item => (
-            <li key={item.id} className={`flex gap-4 items-start group ${item.estado === 'Listo' ? 'opacity-40' : ''}`}>
-              <div className={`font-bold text-lg w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
-                item.estado === 'Listo' ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-700 group-hover:bg-brand-primary group-hover:text-white'
+            <li key={item.id} className={`flex items-start p-3 ${item.estado === 'Listo' ? 'bg-gray-50 opacity-40' : 'bg-white'}`}>
+              <div className={`w-8 font-black text-lg text-center ${
+                item.estado === 'Listo' ? 'text-gray-400' : (isPendiente ? 'text-status-ocupado' : 'text-brand-accent')
               }`}>
                 {item.cantidad}
               </div>
-              <div className="pt-1.5 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className={`font-semibold text-lg leading-tight ${item.estado === 'Listo' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+              <div className="flex-1 ml-1">
+                <div className="flex justify-between items-start gap-2">
+                  <span className={`font-bold text-base leading-tight ${item.estado === 'Listo' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                     {item.nombre}
-                  </p>
+                  </span>
                   {item.estado === 'Pendiente' && pedido.items.some(i => i.estado !== 'Pendiente') && (
-                    <span className="bg-red-100 text-status-ocupado text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                    <span className="bg-red-50 text-status-ocupado border border-status-ocupado/30 text-[9px] font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">
                       Nuevo
                     </span>
                   )}
                 </div>
                 {item.observaciones && (
-                  <div className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg border inline-block ${
-                    item.estado === 'Listo' ? 'text-gray-400 bg-gray-50 border-gray-100' : 'text-status-ocupado bg-red-50/50 border-red-100/50'
-                  }`}>
+                  <div className={`mt-1 text-sm font-semibold ${item.estado === 'Listo' ? 'text-gray-400' : 'text-red-600'}`}>
+                    <span className="uppercase text-[10px] bg-red-100 text-red-700 px-1 py-0.5 rounded mr-1">Mod</span> 
                     {item.observaciones}
                   </div>
                 )}
@@ -56,25 +53,24 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
             </li>
           ))}
         </ul>
+      </div>
 
-        {/* Acciones de Estado */}
-        <div className="pt-5 mt-auto">
+      {/* Acción de Estado en Footer (Barra de acción) */}
+      <div className="p-2 bg-gray-100 border-t border-gray-200 mt-auto">
+        <button 
+          onClick={() => onUpdateStatus(pedido.id, isPendiente ? 'Preparando' : 'Listo')}
+          className={`w-full py-2 rounded font-bold text-sm tracking-wide transition-colors flex justify-center items-center gap-2 ${
+            isPendiente 
+              ? 'bg-gray-800 hover:bg-black text-white' 
+              : 'bg-status-disponible hover:bg-emerald-700 text-white'
+          }`}
+        >
           {isPendiente ? (
-            <button 
-              onClick={() => onUpdateStatus(pedido.id, 'Preparando')}
-              className="w-full bg-gray-900 text-white py-3.5 rounded-xl font-semibold shadow-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
-            >
-              Comenzar Preparación
-            </button>
+             'EMPEZAR A PREPARAR'
           ) : (
-            <button 
-              onClick={() => onUpdateStatus(pedido.id, 'Listo')}
-              className="w-full bg-status-disponible text-white py-3.5 rounded-xl font-semibold shadow-sm hover:opacity-90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
-            >
-              <Check className="w-5 h-5 stroke-[3]" /> Marcar como Listo
-            </button>
+             <><Check className="w-4 h-4 stroke-[3]" /> MARCAR COMO LISTO</>
           )}
-        </div>
+        </button>
       </div>
     </div>
   );
