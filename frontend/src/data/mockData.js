@@ -11,10 +11,10 @@ export const clientesData = [
 ];
 
 export const productosData = [
-  { id: 1, nombre: "Lomo Saltado", precio: 12000, categoria: "Fondos" },
-  { id: 2, nombre: "Ceviche Mixto", precio: 15000, categoria: "Entradas" },
-  { id: 3, nombre: "Pisco Sour", precio: 5000, categoria: "Bebidas" },
-  { id: 4, nombre: "Chupe de Camarones", precio: 14000, categoria: "Fondos" },
+  { id: 1, nombre: "Lomo Saltado", precio: 12000, categoria: "Fondos", imagen: "/images/lomo_saltado.jpg" },
+  { id: 2, nombre: "Ceviche Mixto", precio: 15000, categoria: "Entradas", imagen: "/images/ceviche_mixto.jpg" },
+  { id: 3, nombre: "Pisco Sour", precio: 5000, categoria: "Bebidas", imagen: "/images/pisco_sour.jpg" },
+  { id: 4, nombre: "Chupe de Camarones", precio: 14000, categoria: "Fondos", imagen: "/images/chupe_camarones.jpg" },
 ];
 
 export const pedidosIniciales = [
