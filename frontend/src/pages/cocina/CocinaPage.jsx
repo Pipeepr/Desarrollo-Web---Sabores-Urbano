@@ -94,16 +94,16 @@ export default function CocinaPage() {
 
         {pedidosListos.length > 0 && (
           <>
-            <h2 className="text-2xl text-status-disponible mb-6 border-b-2 border-status-disponible pb-2 inline-block font-bold">Recientemente Listos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 opacity-80">
+            <h2 className="text-2xl text-gray-600 mb-6 border-b-2 border-gray-200 pb-2 inline-block font-bold">Recientemente Listos</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 opacity-70">
               {pedidosListos.map(pedido => (
-                <div key={pedido.id} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center border-l-4 border-status-disponible">
+                <div key={pedido.id} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center border border-gray-200">
                   <div>
                     <h4 className="font-bold text-gray-800">{pedido.mesaNombre}</h4>
                     <p className="text-sm text-gray-500">{pedido.items.length} productos</p>
                   </div>
-                  <div className="bg-green-50 p-2 rounded-full">
-                    <Check className="text-status-disponible w-5 h-5" />
+                  <div>
+                    <Check className="text-gray-400 w-5 h-5" />
                   </div>
                 </div>
               ))}
