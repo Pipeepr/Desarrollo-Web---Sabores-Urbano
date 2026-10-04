@@ -2,52 +2,46 @@ import React from 'react';
 import { Clock, Check } from 'lucide-react';
 
 export default function PedidoCard({ pedido, onUpdateStatus }) {
-  // Configuración visual según el estado (KDS Moderno)
   const isPendiente = pedido.estado === 'Pendiente';
-  const headerBg = isPendiente ? 'bg-status-ocupado' : 'bg-brand-accent';
-  const headerText = isPendiente ? 'text-white' : 'text-gray-900';
+  const borderColor = isPendiente ? 'border-t-status-ocupado' : 'border-t-brand-accent';
+  const badgeColor = isPendiente ? 'bg-red-50 text-status-ocupado border-status-ocupado/20' : 'bg-orange-50 text-brand-accent border-brand-accent/20';
 
   return (
-    <div className="bg-white rounded shadow-sm border border-gray-300 flex flex-col h-full overflow-hidden">
-      {/* Cabecera Estilo Ticket (Compacta y Profesional) */}
-      <div className={`${headerBg} ${headerText} px-3 py-2 flex justify-between items-center border-b border-black/10`}>
-        <div className="flex flex-col">
-          <span className="font-bold text-lg leading-none tracking-tight">{pedido.mesaNombre}</span>
-          <span className="text-[11px] opacity-90 mt-1 flex items-center gap-1 font-medium">
-            <Clock className="w-3 h-3" /> {pedido.hora}
-          </span>
+    <div className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 ${borderColor} border-t-4 flex flex-col h-full`}>
+      <div className="p-5 flex justify-between items-start border-b border-gray-50">
+        <div>
+          <h3 className="font-bold text-xl text-brand-primary mb-1">{pedido.mesaNombre}</h3>
+          <div className="flex items-center gap-1.5 text-sm text-gray-500">
+            <Clock className="w-4 h-4" /> {pedido.hora}
+          </div>
         </div>
-        <div className="bg-black/15 px-2 py-1 rounded text-[10px] font-black tracking-widest uppercase">
+        <div className={`${badgeColor} border px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider`}>
           {pedido.estado}
         </div>
       </div>
       
-      {/* Lista de Productos tipo Comanda */}
-      <div className="p-0 flex-grow">
-        <ul className="divide-y divide-gray-100">
+      <div className="p-5 flex-grow">
+        <ul className="space-y-4">
           {pedido.items.map(item => (
-            <li key={item.id} className={`flex items-start p-3 ${item.estado === 'Listo' ? 'bg-gray-50 opacity-40' : 'bg-white'}`}>
-              <div className={`w-8 font-black text-lg text-center ${
-                item.estado === 'Listo' ? 'text-gray-400' : (isPendiente ? 'text-status-ocupado' : 'text-brand-accent')
-              }`}>
+            <li key={item.id} className={`flex gap-3 items-start ${item.estado === 'Listo' ? 'opacity-50' : ''}`}>
+              <div className="bg-gray-50 text-brand-primary font-bold w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
                 {item.cantidad}
               </div>
-              <div className="flex-1 ml-1">
-                <div className="flex justify-between items-start gap-2">
-                  <span className={`font-bold text-base leading-tight ${item.estado === 'Listo' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+              <div className="pt-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className={`font-semibold ${item.estado === 'Listo' ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                     {item.nombre}
-                  </span>
+                  </p>
                   {item.estado === 'Pendiente' && pedido.items.some(i => i.estado !== 'Pendiente') && (
-                    <span className="bg-red-50 text-status-ocupado border border-status-ocupado/30 text-[9px] font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">
+                    <span className="bg-red-100 text-status-ocupado text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
                       Nuevo
                     </span>
                   )}
                 </div>
                 {item.observaciones && (
-                  <div className={`mt-1 text-sm font-semibold ${item.estado === 'Listo' ? 'text-gray-400' : 'text-red-600'}`}>
-                    <span className="uppercase text-[10px] bg-red-100 text-red-700 px-1 py-0.5 rounded mr-1">Mod</span> 
-                    {item.observaciones}
-                  </div>
+                  <p className="mt-1 text-sm text-gray-500 italic">
+                    * {item.observaciones}
+                  </p>
                 )}
               </div>
             </li>
@@ -55,22 +49,22 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
         </ul>
       </div>
 
-      {/* Acción de Estado en Footer (Barra de acción) */}
-      <div className="p-2 bg-gray-100 border-t border-gray-200 mt-auto">
-        <button 
-          onClick={() => onUpdateStatus(pedido.id, isPendiente ? 'Preparando' : 'Listo')}
-          className={`w-full py-2 rounded font-bold text-sm tracking-wide transition-colors flex justify-center items-center gap-2 ${
-            isPendiente 
-              ? 'bg-gray-800 hover:bg-black text-white' 
-              : 'bg-status-disponible hover:bg-emerald-700 text-white'
-          }`}
-        >
-          {isPendiente ? (
-             'EMPEZAR A PREPARAR'
-          ) : (
-             <><Check className="w-4 h-4 stroke-[3]" /> MARCAR COMO LISTO</>
-          )}
-        </button>
+      <div className="p-5 pt-0 mt-auto">
+        {isPendiente ? (
+          <button 
+            onClick={() => onUpdateStatus(pedido.id, 'Preparando')}
+            className="w-full bg-brand-primary text-white py-3 rounded-lg font-semibold shadow hover:opacity-90 transition-opacity"
+          >
+            Comenzar Preparación
+          </button>
+        ) : (
+          <button 
+            onClick={() => onUpdateStatus(pedido.id, 'Listo')}
+            className="w-full bg-status-disponible text-white py-3 rounded-lg font-semibold shadow hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
+          >
+            <Check className="w-5 h-5" /> Marcar como Listo
+          </button>
+        )}
       </div>
     </div>
   );
