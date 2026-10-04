@@ -39,7 +39,7 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
                   <p className={`font-semibold text-lg leading-tight ${item.estado === 'Listo' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                     {item.nombre}
                   </p>
-                  {item.estado === 'Pendiente' && !isPendiente && (
+                  {item.estado === 'Pendiente' && pedido.items.some(i => i.estado !== 'Pendiente') && (
                     <span className="bg-red-100 text-status-ocupado text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
                       Nuevo
                     </span>

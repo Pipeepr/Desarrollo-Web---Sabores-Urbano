@@ -55,7 +55,10 @@ export default function PedidosPage() {
       total: 0
     };
 
-    setPedidos([...pedidos, nuevoPedido]);
+    const currentPedidos = getStoredPedidos();
+    const nuevosPedidos = [...currentPedidos, nuevoPedido];
+    setPedidos(nuevosPedidos);
+    savePedidos(nuevosPedidos);
     setError('');
   };
 
@@ -80,7 +83,10 @@ export default function PedidosPage() {
       estado: 'Pendiente'
     };
 
-    const updatedPedidos = pedidos.map(p => {
+    // Leer SIEMPRE desde localStorage antes de modificar para evitar pisar los cambios de la cocina (stale state)
+    const currentPedidos = getStoredPedidos();
+
+    const updatedPedidos = currentPedidos.map(p => {
       if (p.id === pedidoActual.id) {
         return {
           ...p,
@@ -93,6 +99,7 @@ export default function PedidosPage() {
     });
 
     setPedidos(updatedPedidos);
+    savePedidos(updatedPedidos);
     setProductoId('');
     setCantidad(1);
     setObservaciones('');
@@ -100,7 +107,8 @@ export default function PedidosPage() {
   };
 
   const handleEliminarItem = (pedidoId, itemId) => {
-    const updatedPedidos = pedidos.map(p => {
+    const currentPedidos = getStoredPedidos();
+    const updatedPedidos = currentPedidos.map(p => {
       if (p.id === pedidoId) {
         const itemToRemove = p.items.find(i => i.id === itemId);
         return {
@@ -112,6 +120,7 @@ export default function PedidosPage() {
       return p;
     });
     setPedidos(updatedPedidos);
+    savePedidos(updatedPedidos);
   };
 
   return (
