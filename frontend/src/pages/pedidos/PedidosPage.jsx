@@ -123,6 +123,20 @@ export default function PedidosPage() {
     savePedidos(updatedPedidos);
   };
 
+  const handleCerrarPedido = (pedidoId) => {
+    if (window.confirm('¿Estás seguro de cobrar este pedido y liberar la mesa?')) {
+      const currentPedidos = getStoredPedidos();
+      const updatedPedidos = currentPedidos.map(p => {
+        if (p.id === pedidoId) {
+          return { ...p, estado: 'Pagado' };
+        }
+        return p;
+      });
+      setPedidos(updatedPedidos);
+      savePedidos(updatedPedidos);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -314,6 +328,19 @@ export default function PedidosPage() {
                     )}
                   </table>
                 </div>
+
+                {/* Botón para cerrar pedido y liberar mesa */}
+                {pedidoActual.items.length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+                    <button 
+                      onClick={() => handleCerrarPedido(pedidoActual.id)}
+                      className="bg-brand-primary text-white py-3 px-8 rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      Cobrar y Liberar Mesa
+                    </button>
+                  </div>
+                )}
 
               </div>
             ) : (

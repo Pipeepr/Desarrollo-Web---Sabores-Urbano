@@ -46,7 +46,7 @@ export default function CocinaPage() {
   };
 
   // Cocina solo ve pedidos que no estén "Pagado" (y filtramos los que no tienen items)
-  const pedidosCocina = pedidos.filter(p => p.items.length > 0 && p.estado !== 'Listo');
+  const pedidosCocina = pedidos.filter(p => p.items.length > 0 && p.estado !== 'Listo' && p.estado !== 'Pagado');
   const pedidosListos = pedidos.filter(p => p.items.length > 0 && p.estado === 'Listo');
 
   return (
