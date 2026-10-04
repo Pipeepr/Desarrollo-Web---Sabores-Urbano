@@ -187,7 +187,9 @@ export default function PedidosPage() {
               <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
                 <div className="flex justify-between items-center mb-6 border-b pb-4">
                   <h2 className="text-2xl text-brand-primary m-0">Comanda: {pedidoActual.mesaNombre}</h2>
-                  <span className="bg-brand-accent bg-opacity-20 text-brand-accent px-3 py-1 rounded-full text-sm font-semibold">
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    pedidoActual.estado === 'Pendiente' ? 'bg-red-100 text-status-ocupado' : 'bg-yellow-100 text-yellow-800'
+                  }`}>
                     {pedidoActual.estado}
                   </span>
                 </div>

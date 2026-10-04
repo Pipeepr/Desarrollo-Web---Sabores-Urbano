@@ -5,8 +5,9 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
   // Configuración visual según el estado (KDS Moderno)
   const isPendiente = pedido.estado === 'Pendiente';
   const headerBg = isPendiente ? 'bg-red-500' : 'bg-brand-accent';
-  const headerText = isPendiente ? 'text-white' : 'text-white';
-  const badgeBg = isPendiente ? 'bg-white bg-opacity-20' : 'bg-black bg-opacity-10';
+  // El Dorado (brand-accent) necesita texto oscuro para poder leerse bien
+  const headerText = isPendiente ? 'text-white' : 'text-gray-900';
+  const badgeBg = isPendiente ? 'bg-white/20' : 'bg-white/40 text-gray-900';
 
   return (
     <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex flex-col h-full border border-gray-100/50">
