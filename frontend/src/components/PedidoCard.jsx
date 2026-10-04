@@ -2,43 +2,41 @@ import React from 'react';
 import { Clock, Check } from 'lucide-react';
 
 export default function PedidoCard({ pedido, onUpdateStatus }) {
+  // Configuración visual según el estado (KDS Moderno)
+  const isPendiente = pedido.estado === 'Pendiente';
+  const headerBg = isPendiente ? 'bg-red-500' : 'bg-brand-accent';
+  const headerText = isPendiente ? 'text-white' : 'text-white';
+  const badgeBg = isPendiente ? 'bg-white bg-opacity-20' : 'bg-black bg-opacity-10';
+
   return (
-    <div 
-      className={`bg-white rounded-xl shadow-md overflow-hidden border-t-4 transition-transform hover:-translate-y-1 ${
-        pedido.estado === 'Pendiente' ? 'border-status-ocupado' : 'border-brand-accent'
-      }`}
-    >
-      {/* Cabecera Tarjeta */}
-      <div className="bg-gray-50 px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex flex-col h-full border border-gray-100/50">
+      {/* Cabecera Estilo Ticket/KDS (Header completamente relleno de color) */}
+      <div className={`${headerBg} ${headerText} px-6 py-4 flex justify-between items-start`}>
         <div>
-          <h3 className="font-bold text-lg text-brand-primary">{pedido.mesaNombre}</h3>
-          <p className="text-xs text-gray-500 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {pedido.hora}
-          </p>
+          <h3 className="font-bold text-xl mb-1 tracking-tight">{pedido.mesaNombre}</h3>
+          <div className="flex items-center gap-1.5 text-sm opacity-90 font-medium">
+            <Clock className="w-4 h-4" /> {pedido.hora}
+          </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-          pedido.estado === 'Pendiente' 
-            ? 'bg-red-100 text-status-ocupado' 
-            : 'bg-yellow-100 text-brand-accent'
-        }`}>
+        <div className={`${badgeBg} px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider backdrop-blur-sm`}>
           {pedido.estado}
-        </span>
+        </div>
       </div>
       
       {/* Lista de Productos */}
-      <div className="p-5">
-        <ul className="space-y-4 mb-6">
+      <div className="p-6 flex-grow flex flex-col">
+        <ul className="space-y-5 mb-6 flex-grow">
           {pedido.items.map(item => (
-            <li key={item.id} className="flex gap-3">
-              <span className="font-bold text-brand-primary text-lg w-6 flex-shrink-0">
-                {item.cantidad}x
-              </span>
-              <div>
-                <p className="font-medium text-gray-800">{item.nombre}</p>
+            <li key={item.id} className="flex gap-4 items-start group">
+              <div className="bg-gray-50 text-gray-700 font-bold text-lg w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                {item.cantidad}
+              </div>
+              <div className="pt-1.5">
+                <p className="font-semibold text-gray-800 text-lg leading-tight">{item.nombre}</p>
                 {item.observaciones && (
-                  <p className="text-sm text-status-ocupado italic mt-1 bg-red-50 p-1.5 rounded border border-red-100">
-                    ⚠️ {item.observaciones}
-                  </p>
+                  <div className="mt-2 text-sm text-status-ocupado font-medium bg-red-50/50 px-3 py-2 rounded-lg border border-red-100/50 inline-block">
+                    {item.observaciones}
+                  </div>
                 )}
               </div>
             </li>
@@ -46,20 +44,20 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
         </ul>
 
         {/* Acciones de Estado */}
-        <div className="pt-4 border-t border-gray-100">
-          {pedido.estado === 'Pendiente' ? (
+        <div className="pt-5 mt-auto">
+          {isPendiente ? (
             <button 
               onClick={() => onUpdateStatus(pedido.id, 'Preparando')}
-              className="w-full bg-brand-accent text-white py-2.5 rounded-md font-medium hover:bg-opacity-90 transition-colors"
+              className="w-full bg-gray-900 text-white py-3.5 rounded-xl font-semibold shadow-sm hover:bg-gray-800 transition-all active:scale-[0.98]"
             >
               Comenzar Preparación
             </button>
           ) : (
             <button 
               onClick={() => onUpdateStatus(pedido.id, 'Listo')}
-              className="w-full bg-status-disponible text-white py-2.5 rounded-md font-medium hover:bg-opacity-90 transition-colors flex justify-center items-center gap-2"
+              className="w-full bg-status-disponible text-white py-3.5 rounded-xl font-semibold shadow-sm hover:bg-opacity-90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
             >
-              <Check className="w-5 h-5" /> Marcar como Listo
+              <Check className="w-5 h-5 stroke-[3]" /> Marcar como Listo
             </button>
           )}
         </div>

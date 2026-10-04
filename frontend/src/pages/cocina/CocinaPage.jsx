@@ -11,7 +11,7 @@ const savePedidos = (pedidos) => {
   localStorage.setItem('pedidos_sabores_urbano', JSON.stringify(pedidos));
 };
 
-import PedidoCard from '../components/PedidoCard';
+import PedidoCard from '../../components/PedidoCard';
 
 export default function CocinaPage() {
   const [pedidos, setPedidos] = useState([]);

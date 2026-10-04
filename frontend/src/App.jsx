@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Importamos las páginas de prueba que creamos recién
 import MesasPage from './pages/MesasPage';
 import ReservasPage from './pages/ReservasPage';
-import PedidosPage from './pages/PedidosPage';
-import CocinaPage from './pages/CocinaPage';
+import PedidosPage from './pages/pedidos/PedidosPage';
+import CocinaPage from './pages/cocina/CocinaPage';
 
 function App() {
   return (

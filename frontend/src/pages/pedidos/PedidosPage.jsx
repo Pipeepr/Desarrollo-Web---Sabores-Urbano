@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { mesasData, clientesData, productosData } from '../data/mockData';
+import { mesasData, clientesData, productosData } from '../../data/mockData';
 import { Plus, Trash2, CheckCircle, AlertCircle, ShoppingBag } from 'lucide-react';
 
 const getStoredPedidos = () => {
