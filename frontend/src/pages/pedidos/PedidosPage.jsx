@@ -196,18 +196,27 @@ export default function PedidosPage() {
                 <form onSubmit={handleAgregarProducto} className="mb-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 className="text-lg font-medium text-brand-primary mb-3">Agregar Producto</h3>
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <div className="md:col-span-5">
-                      <label className="block text-xs text-gray-500 mb-1">Producto</label>
-                      <select 
-                        className="w-full border border-gray-300 rounded-md p-2"
-                        value={productoId}
-                        onChange={(e) => setProductoId(e.target.value)}
-                      >
-                        <option value="">-- Seleccionar --</option>
+                    <div className="md:col-span-12 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">1. Selecciona el Producto</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {productosData.map(p => (
-                          <option key={p.id} value={p.id}>{p.nombre} - ${p.precio}</option>
+                          <div 
+                            key={p.id}
+                            onClick={() => setProductoId(p.id)}
+                            className={`cursor-pointer rounded-xl overflow-hidden transition-all border-2 bg-white ${
+                              parseInt(productoId) === p.id 
+                                ? 'border-brand-primary ring-2 ring-brand-primary/20 shadow-md transform scale-[1.02]' 
+                                : 'border-transparent shadow-sm hover:shadow-md'
+                            }`}
+                          >
+                            <img src={p.imagen} alt={p.nombre} className="w-full h-24 object-cover" />
+                            <div className="p-2">
+                              <p className="text-sm font-bold text-gray-800 leading-tight line-clamp-1">{p.nombre}</p>
+                              <p className="text-brand-secondary font-medium text-sm">${p.precio.toLocaleString()}</p>
+                            </div>
+                          </div>
                         ))}
-                      </select>
+                      </div>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-xs text-gray-500 mb-1">Cant.</label>
