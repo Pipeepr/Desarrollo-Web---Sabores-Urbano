@@ -76,7 +76,8 @@ export default function PedidosPage() {
       nombre: producto.nombre,
       precio: producto.precio, // Conserva precio actual
       cantidad: parseInt(cantidad),
-      observaciones: observaciones
+      observaciones: observaciones,
+      estado: 'Pendiente'
     };
 
     const updatedPedidos = pedidos.map(p => {

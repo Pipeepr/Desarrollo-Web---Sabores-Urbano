@@ -29,7 +29,15 @@ export default function CocinaPage() {
   const handleUpdateStatus = (pedidoId, nuevoEstado) => {
     const updatedPedidos = pedidos.map(p => {
       if (p.id === pedidoId) {
-        return { ...p, estado: nuevoEstado };
+        return { 
+          ...p, 
+          estado: nuevoEstado,
+          items: p.items.map(item => {
+            if (nuevoEstado === 'Listo') return { ...item, estado: 'Listo' };
+            if (nuevoEstado === 'Preparando' && item.estado === 'Pendiente') return { ...item, estado: 'Preparando' };
+            return item;
+          })
+        };
       }
       return p;
     });

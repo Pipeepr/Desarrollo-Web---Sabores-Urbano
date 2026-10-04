@@ -26,8 +26,8 @@ export const pedidosIniciales = [
     estado: "Preparando", // Preparando, Listo, Entregado
     hora: new Date().toLocaleTimeString(),
     items: [
-      { id: 1, producto: "Lomo Saltado", cantidad: 2, precio: 12000, observaciones: "Sin cebolla" },
-      { id: 3, producto: "Pisco Sour", cantidad: 2, precio: 5000, observaciones: "" }
+      { id: 1, producto: "Lomo Saltado", cantidad: 2, precio: 12000, observaciones: "Sin cebolla", estado: 'Preparando' },
+      { id: 3, producto: "Pisco Sour", cantidad: 2, precio: 5000, observaciones: "", estado: 'Preparando' }
     ]
   }
 ];

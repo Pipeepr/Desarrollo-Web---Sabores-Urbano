@@ -28,14 +28,27 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
       <div className="p-6 flex-grow flex flex-col">
         <ul className="space-y-5 mb-6 flex-grow">
           {pedido.items.map(item => (
-            <li key={item.id} className="flex gap-4 items-start group">
-              <div className="bg-gray-50 text-gray-700 font-bold text-lg w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+            <li key={item.id} className={`flex gap-4 items-start group ${item.estado === 'Listo' ? 'opacity-40' : ''}`}>
+              <div className={`font-bold text-lg w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                item.estado === 'Listo' ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-700 group-hover:bg-brand-primary group-hover:text-white'
+              }`}>
                 {item.cantidad}
               </div>
-              <div className="pt-1.5">
-                <p className="font-semibold text-gray-800 text-lg leading-tight">{item.nombre}</p>
+              <div className="pt-1.5 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className={`font-semibold text-lg leading-tight ${item.estado === 'Listo' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                    {item.nombre}
+                  </p>
+                  {item.estado === 'Pendiente' && !isPendiente && (
+                    <span className="bg-red-100 text-status-ocupado text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                      Nuevo
+                    </span>
+                  )}
+                </div>
                 {item.observaciones && (
-                  <div className="mt-2 text-sm text-status-ocupado font-medium bg-red-50/50 px-3 py-2 rounded-lg border border-red-100/50 inline-block">
+                  <div className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg border inline-block ${
+                    item.estado === 'Listo' ? 'text-gray-400 bg-gray-50 border-gray-100' : 'text-status-ocupado bg-red-50/50 border-red-100/50'
+                  }`}>
                     {item.observaciones}
                   </div>
                 )}
