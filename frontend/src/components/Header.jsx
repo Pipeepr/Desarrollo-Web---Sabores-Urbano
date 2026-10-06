@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: "/menu", label: "Menú" },
   { to: "/pedidos", label: "Pedidos" },
   { to: "/cocina", label: "Cocina" },
+  { to: "/restaurantes", label: "Restaurantes" },
   { to: "/clientes", label: "Clientes" },
   { to: "/reportes", label: "Reportes" },
   { to: "/login", label: "Iniciar sesión" },
