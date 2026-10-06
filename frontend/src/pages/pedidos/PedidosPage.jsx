@@ -163,7 +163,7 @@ export default function PedidosPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mesa *</label>
                 <select 
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-shadow"
+                  className="w-full border border-gray-300 rounded-md p-2 min-h-[44px] focus:ring-brand-primary focus:border-brand-primary outline-none transition-shadow"
                   value={mesaId}
                   onChange={(e) => setMesaId(e.target.value)}
                 >
@@ -177,7 +177,7 @@ export default function PedidosPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cliente (Opcional)</label>
                 <select 
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition-shadow"
+                  className="w-full border border-gray-300 rounded-md p-2 min-h-[44px] focus:ring-brand-primary focus:border-brand-primary outline-none transition-shadow"
                   value={clienteId}
                   onChange={(e) => setClienteId(e.target.value)}
                   disabled={pedidoActual} // disable if order is open
@@ -192,7 +192,7 @@ export default function PedidosPage() {
               {!pedidoActual ? (
                 <button 
                   onClick={handleAbrirPedido}
-                  className="mt-4 w-full bg-brand-primary text-white py-2 px-4 rounded-md font-medium hover:opacity-90 transition-colors flex items-center justify-center gap-2"
+                  className="mt-4 w-full bg-brand-primary text-white py-2 px-4 min-h-[44px] rounded-md font-medium hover:opacity-90 transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Abrir Pedido
@@ -253,7 +253,7 @@ export default function PedidosPage() {
                       <input 
                         type="number" 
                         min="1"
-                        className="w-full border border-gray-300 rounded-md p-2"
+                        className="w-full border border-gray-300 rounded-md p-2 min-h-[44px]"
                         value={cantidad}
                         onChange={(e) => setCantidad(e.target.value)}
                       />
@@ -263,7 +263,7 @@ export default function PedidosPage() {
                       <input 
                         type="text" 
                         placeholder="Ej. Sin cebolla"
-                        className="w-full border border-gray-300 rounded-md p-2"
+                        className="w-full border border-gray-300 rounded-md p-2 min-h-[44px]"
                         value={observaciones}
                         onChange={(e) => setObservaciones(e.target.value)}
                       />
@@ -271,7 +271,7 @@ export default function PedidosPage() {
                   </div>
                   <button 
                     type="submit"
-                    className="mt-4 w-full md:w-auto bg-brand-secondary text-white py-2 px-6 rounded-md font-medium hover:opacity-90 transition-colors"
+                    className="mt-4 w-full md:w-auto bg-brand-secondary text-white py-2 px-6 min-h-[44px] rounded-md font-medium hover:opacity-90 transition-colors"
                   >
                     Agregar a la Comanda
                   </button>
@@ -308,7 +308,7 @@ export default function PedidosPage() {
                             <td className="py-3 px-2 text-center">
                               <button 
                                 onClick={() => handleEliminarItem(pedidoActual.id, item.id)}
-                                className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
+                                className="text-red-500 hover:text-red-700 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors mx-auto"
                                 title="Eliminar"
                               >
                                 <Trash2 className="w-5 h-5" />
@@ -334,7 +334,7 @@ export default function PedidosPage() {
                   <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
                     <button 
                       onClick={() => handleCerrarPedido(pedidoActual.id)}
-                      className="bg-brand-primary text-white py-3 px-8 rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2"
+                      className="bg-brand-primary text-white py-3 px-8 min-h-[44px] rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2"
                     >
                       <CheckCircle className="w-5 h-5" />
                       Cobrar y Liberar Mesa

@@ -54,14 +54,14 @@ export default function PedidoCard({ pedido, onUpdateStatus }) {
         {isPendiente ? (
           <button 
             onClick={() => onUpdateStatus(pedido.id, 'Preparando')}
-            className="w-full bg-brand-primary text-white py-2.5 rounded font-medium shadow-sm hover:opacity-90 transition-opacity"
+            className="w-full bg-brand-primary text-white py-2.5 min-h-[44px] rounded font-medium shadow-sm hover:opacity-90 transition-opacity"
           >
             Comenzar Preparación
           </button>
         ) : (
           <button 
             onClick={() => onUpdateStatus(pedido.id, 'Listo')}
-            className="w-full bg-status-disponible text-white py-2.5 rounded font-medium shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
+            className="w-full bg-status-disponible text-white py-2.5 min-h-[44px] rounded font-medium shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2"
           >
             <Check className="w-5 h-5" /> Marcar como Listo
           </button>
