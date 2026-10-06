@@ -1225,20 +1225,28 @@
 
 @media (max-width: 960px) {
   .barra-superior-calendario {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .navegacion-fecha {
-    flex-basis: 100%;
+    min-width: 0;
   }
 
   .acciones-calendario {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    justify-content: space-between;
+  }
+
+  .botones-vista,
+  .boton-nueva-reserva {
+    width: 100%;
+    min-width: 0;
   }
 
   .botones-vista {
-    flex: 1 1 190px;
+    flex: none;
   }
 }
 
@@ -1254,11 +1262,26 @@
   }
 
   .cabecera-principal-reservas,
-  .barra-superior-calendario,
-  .acciones-calendario,
   .acciones-modal {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .barra-superior-calendario {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .navegacion-fecha,
+  .acciones-calendario {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .acciones-calendario {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .boton-volver-sitio,
