@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+import Header from './components/Header';
+import Footer from './components/Footer';
+
+// Importamos las páginas de prueba que creamos recién
 import MesasPage from './pages/MesasPage';
 import ReservasPage from './pages/ReservasPage';
 import PedidosPage from './pages/pedidos/PedidosPage';
@@ -10,9 +14,12 @@ import ReportesPage from './pages/ReportesPage';
 function App() {
   return (
     <BrowserRouter>
+      <Header />
+
       <main className="min-h-screen bg-gray-100">
         <Routes>
           <Route path="/" element={<MesasPage />} />
+          <Route path="/mesas" element={<MesasPage />} />
           <Route path="/reservas" element={<ReservasPage />} />
           <Route path="/pedidos" element={<PedidosPage />} />
           <Route path="/cocina" element={<CocinaPage />} />
@@ -21,6 +28,8 @@ function App() {
           {/* Aquí tus compañeros irán agregando las demás rutas */}
         </Routes>
       </main>
+
+      <Footer />
     </BrowserRouter>
   );
 }
