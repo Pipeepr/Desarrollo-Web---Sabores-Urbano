@@ -1,0 +1,284 @@
+.pagina-precios {
+  min-height: 100vh;
+  padding: 30px;
+  background: #f7f4ee;
+}
+
+.contenedor-precios {
+  max-width: 1200px;
+  margin: auto;
+}
+
+
+/* CABECERA */
+
+.cabecera-precios {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+  margin-bottom: 25px;
+  border-radius: 18px;
+  background: #123c39;
+  color: white;
+}
+
+.cabecera-precios > svg {
+  width: 45px;
+  height: 45px;
+  color: #d8b66a;
+}
+
+.etiqueta-precios {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #c49a4a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cabecera-precios h1 {
+  margin-bottom: 5px;
+}
+
+
+/* SECCIONES */
+
+.seccion-precios,
+.seccion-pedidos-historicos {
+  padding: 25px;
+  margin-bottom: 25px;
+  border-radius: 18px;
+  background: white;
+}
+
+
+/* PRODUCTOS */
+
+.grid-productos-precios {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.producto-precio-card {
+  padding: 20px;
+  border: 1px solid #e5e1da;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 5px 18px
+    rgba(18, 60, 57, 0.07);
+}
+
+.categoria-precio {
+  color: #687184;
+  font-size: 12px;
+}
+
+.producto-precio-card h3 {
+  margin: 5px 0 15px;
+  color: #123c39;
+}
+
+.precio-actual {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  font-size: 20px;
+}
+
+.precio-actual svg {
+  width: 18px;
+  color: #c49a4a;
+}
+
+
+/* BOTONES */
+
+.acciones-precio {
+  display: flex;
+  gap: 8px;
+}
+
+.acciones-precio button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 9px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.boton-cambiar-precio {
+  border: none;
+  background: #123c39;
+  color: white;
+}
+
+.boton-historial-precio {
+  border: 1px solid #c49a4a;
+  background: white;
+  color: #a97c30;
+}
+
+
+/* PEDIDOS */
+
+.titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lista-pedidos-historicos {
+  display: grid;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.pedido-historico {
+  padding: 18px;
+  border: 1px solid #e5e1da;
+  border-radius: 12px;
+}
+
+.pedido-historico-cabecera {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.producto-pedido-historico {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.producto-pedido-historico span {
+  display: block;
+  color: #687184;
+  font-size: 12px;
+}
+
+
+/* MODALES */
+
+.modal-precio,
+.modal-historial-precios {
+  width: 100%;
+  max-width: 520px;
+  padding: 25px;
+  border-radius: 18px;
+  background: white;
+}
+
+.encabezado-modal-precio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.encabezado-modal-precio button {
+  display: flex;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.precio-anterior {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background: #f7f4ee;
+}
+
+.mensaje-historico {
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 9px;
+  background: #f5e8cc;
+  color: #76520f;
+  font-size: 12px;
+}
+
+.boton-confirmar-precio {
+  border: none;
+  background: #c49a4a;
+  color: white;
+}
+
+
+/* HISTORIAL */
+
+.lista-historial-precios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cambio-precio {
+  display: grid;
+  grid-template-columns:
+    1fr auto 1fr;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  background: #f7f4ee;
+}
+
+.cambio-precio span {
+  display: block;
+  color: #687184;
+  font-size: 11px;
+}
+
+.cambio-precio small {
+  grid-column: 1 / -1;
+  color: #687184;
+}
+
+.sin-historial {
+  padding: 30px;
+  text-align: center;
+  color: #687184;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+  .pagina-precios {
+    padding: 15px;
+  }
+
+  .cabecera-precios {
+    align-items: flex-start;
+  }
+
+  .acciones-precio {
+    flex-direction: column;
+  }
+
+  .cambio-precio {
+    grid-template-columns: 1fr;
+  }
+
+  .cambio-precio > svg {
+    transform: rotate(90deg);
+  }
+
+}

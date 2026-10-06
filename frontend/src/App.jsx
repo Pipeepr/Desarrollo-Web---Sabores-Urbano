@@ -13,6 +13,8 @@ import RestaurantsPage from './pages/RestaurantsPage';
 import ReportesPage from './pages/ReportesPage';
 import LoginPage from './pages/LoginPage';
 import ClientesPage from './pages/ClientesPage';
+import PreciosPage from "./pages/PreciosPage";
+import MenuPage from "./pages/menuPage";
 
 // 1. AQUÍ ESTÁ IMPORTADA TU NUEVA PÁGINA
 import DisponibilidadPage from './pages/DisponibilidadPage';
@@ -35,6 +37,8 @@ export default function App() {
           <Route path="/restaurantes" element={<RestaurantsPage />} />
           <Route path="/reportes" element={<ReportesPage />} />
           <Route path="/disponibilidad" element={<DisponibilidadPage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/precios" element={<PreciosPage />} />
         </Routes>
       </main>
 
