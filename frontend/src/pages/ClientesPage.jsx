@@ -20,18 +20,18 @@ const ClientesPage = () => {
     cliente.rut.includes(busqueda)
   );
 
-  // Funcin que se ejecuta al enviar el formulario de registro
+  // Función que se ejecuta al enviar el formulario de registro
   const handleRegistrarCliente = (e) => {
-    e.preventDefault(); // Evita que la pgina se recargue
+    e.preventDefault(); 
     
-    // Armamos el objeto del nuevo cliente (en un entorno real esto ira al backend)
+    // Armamos el objeto del nuevo cliente 
     const clienteCreado = {
-      id: clientes.length + 1, // Simulamos un ID auto-incremental
+      id: clientes.length + 1, 
       nombre: nuevoCliente.nombre,
       rut: nuevoCliente.rut,
       telefono: nuevoCliente.telefono,
       email: nuevoCliente.email,
-      ultimaReserva: 'Sin reservas previas', // Por defecto ya que es nuevo
+      ultimaReserva: 'Sin reservas previas', 
       estado: 'Activo'
     };
 
@@ -46,7 +46,7 @@ const ClientesPage = () => {
   return (
     <div className="page-container relative">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-brand-primary)' }}>
+        <h1 className="text-2xl font-bold text-brand-primary">
           Gestión de Clientes
         </h1>
         
@@ -59,7 +59,7 @@ const ClientesPage = () => {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
-          {/* Botn para abrir el formulario de registro */}
+          {/* Botón para abrir el formulario de registro */}
           <button 
             className="btn-primary whitespace-nowrap"
             onClick={() => setMostrarModal(true)}
@@ -69,11 +69,11 @@ const ClientesPage = () => {
         </div>
       </div>
 
-      {/* MODAL DE REGISTRO DE CLIENTE (Visible solo si mostrarModal es true) */}
+      {/* MODAL DE REGISTRO DE CLIENTE */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="card w-full max-w-md bg-white p-6 relative">
-            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-brand-primary)' }}>
+            <h2 className="text-xl font-bold mb-4 text-brand-primary">
               Registrar Nuevo Cliente
             </h2>
             
@@ -132,9 +132,9 @@ const ClientesPage = () => {
         </div>
       )}
 
-      {/* Vista Responsiva: Tarjetas en mvil, Tabla en Desktop */}
+      {/* Vista Responsiva: Tarjetas en celular, Tabla en Desktop */}
       
-      {/* 1. Vista de Tarjetas para Celulares (Visible solo en pantallas pequeas) */}
+      {/* 1. Vista de Tarjetas para Celulares */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
         {clientesFiltrados.map((cliente) => (
           <div key={cliente.id} className="card flex flex-col gap-2">
@@ -155,7 +155,7 @@ const ClientesPage = () => {
         )}
       </div>
 
-      {/* 2. Vista de Tabla para Tablets/Desktop (Oculta en celulares) */}
+      {/* 2. Vista de Tabla para Tablets/Desktop */}
       <div className="hidden md:block card">
         <div className="table-responsive">
           <table className="w-full text-left border-collapse">

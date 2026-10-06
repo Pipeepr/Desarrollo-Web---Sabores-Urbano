@@ -1,5 +1,5 @@
 /* 1. Importación principal de Tailwind CSS v4 */
-@import "tailwindcss";
+@tailwind base; @tailwind components; @tailwind utilities;
 
 /* 2. Fuente oficial Google Fonts (Inter + Poppins) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
