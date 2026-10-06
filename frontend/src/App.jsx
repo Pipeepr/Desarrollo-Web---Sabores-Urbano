@@ -6,6 +6,8 @@ import Footer from './components/Footer';
 // Importamos las páginas de prueba que creamos recién
 import MesasPage from './pages/MesasPage';
 import ReservasPage from './pages/ReservasPage';
+import PedidosPage from './pages/pedidos/PedidosPage';
+import CocinaPage from './pages/cocina/CocinaPage';
 import RestaurantsPage from './pages/RestaurantsPage';
 import ReportesPage from './pages/ReportesPage';
 
@@ -19,6 +21,8 @@ function App() {
           <Route path="/" element={<MesasPage />} />
           <Route path="/mesas" element={<MesasPage />} />
           <Route path="/reservas" element={<ReservasPage />} />
+          <Route path="/pedidos" element={<PedidosPage />} />
+          <Route path="/cocina" element={<CocinaPage />} />
           <Route path="/restaurantes" element={<RestaurantsPage />} />
           <Route path="/reportes" element={<ReportesPage />} />
           {/* Aquí tus compañeros irán agregando las demás rutas */}
