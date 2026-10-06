@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 
 // Ajusta estas rutas a las que definan en App.jsx (deben coincidir con <Route path="...">)
 const NAV_LINKS = [
-  { to: "/", label: "Inicio" },
   { to: "/mesas", label: "Mesas" },
   { to: "/disponibilidad", label: "Disponibilidad" },
   { to: "/reservas", label: "Reservas" },
