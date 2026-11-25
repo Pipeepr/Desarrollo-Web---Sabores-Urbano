@@ -40,3 +40,18 @@ export async function actualizarEstadoMesa(id, estado) {
 
   return datos.mesa;
 }
+
+// Obtener mesas disponibles - RF5
+export async function obtenerDisponibilidad() {
+  const respuesta = await fetch(
+    `${API_BASE_URL}/mesas/disponibilidad`
+  );
+
+  if (!respuesta.ok) {
+    throw new Error(
+      "No se pudo consultar la disponibilidad de mesas."
+    );
+  }
+
+  return respuesta.json();
+}
