@@ -20,9 +20,21 @@ const mesaSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+  restauranteCodigo: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    default: null
+  },
   estado: {
     type: String,
-    enum: ['disponible', 'reservada', 'ocupada', 'limpieza', 'fuera'],
+    enum: [
+      'disponible',
+      'reservada',
+      'ocupada',
+      'limpieza',
+      'fuera'
+    ],
     default: 'disponible'
   }
 }, {

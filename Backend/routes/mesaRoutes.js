@@ -4,7 +4,10 @@ import { Router } from 'express';
 import {
   obtenerMesas,
   obtenerDisponibilidad,
-  actualizarEstadoMesa
+  actualizarEstadoMesa,
+  crearMesa,
+  actualizarMesa,
+  eliminarMesa
 } from '../controllers/mesaController.js';
 
 import {
@@ -19,6 +22,15 @@ router.get('/', obtenerMesas);
 
 // RF5: Consultar mesas disponibles
 router.get('/disponibilidad', obtenerDisponibilidad);
+
+// RF3: Crear una mesa
+router.post('/', crearMesa);
+
+// RF3: Editar una mesa
+router.put('/:id', validarIdMesa, actualizarMesa);
+
+// RF3: Eliminar una mesa
+router.delete('/:id', validarIdMesa, eliminarMesa);
 
 // RF3: Actualizar el estado de una mesa
 router.patch(
