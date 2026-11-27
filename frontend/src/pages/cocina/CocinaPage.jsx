@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import { ChefHat, Check, UtensilsCrossed, AlertCircle } from 'lucide-react';
 import PedidoCard from '../../components/PedidoCard';
+import { useAuth } from '../../auth/useAuth';
 import {
   obtenerPedidos,
-  actualizarPedido,
+  cambiarEstadoPedido,
   obtenerIdPedido,
+  ESTADOS_PEDIDO_ABIERTO,
 } from '../../services/pedidosService';
 
 export default function CocinaPage() {
+  const { session } = useAuth();
+  const token = session?.token;
   const [pedidos, setPedidos] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     const loadPedidos = async () => {
       try {
-        setPedidos(await obtenerPedidos());
+        setPedidos(await obtenerPedidos(token, ESTADOS_PEDIDO_ABIERTO));
         setError('');
       } catch (err) {
         setError(err.message);
@@ -24,29 +28,32 @@ export default function CocinaPage() {
     loadPedidos();
     const interval = setInterval(loadPedidos, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
+  // Solo se envía el nuevo estado: el backend actualiza los productos sin pisar
+  // los que el garzón haya agregado mientras tanto
   const handleUpdateStatus = async (pedidoId, nuevoEstado) => {
-    const pedido = pedidos.find(p => obtenerIdPedido(p) === pedidoId);
-    if (!pedido) return;
-
-    const itemsActualizados = pedido.items.map(item => {
-      if (nuevoEstado === 'Listo') return { ...item, estado: 'Listo' };
-      if (nuevoEstado === 'Preparando' && item.estado === 'Pendiente') return { ...item, estado: 'Preparando' };
-      return item;
-    });
-
     try {
-      const pedidoActualizado = await actualizarPedido(pedidoId, { estado: nuevoEstado, items: itemsActualizados });
+      const pedidoActualizado = await cambiarEstadoPedido(token, pedidoId, nuevoEstado);
       setPedidos(prev => prev.map(p => (obtenerIdPedido(p) === pedidoId ? pedidoActualizado : p)));
       setError('');
     } catch (err) {
-      setError(`Error al actualizar estado: ${err.message}`);
+      setError(`No se pudo actualizar: ${err.message}`);
+      try {
+        setPedidos(await obtenerPedidos(token, ESTADOS_PEDIDO_ABIERTO));
+      } catch {
+        // Se reintentará en el próximo refresco
+      }
     }
   };
 
-  const pedidosCocina = pedidos.filter(p => p.items.length > 0 && p.estado !== 'Listo' && p.estado !== 'Pagado');
-  const pedidosListos = pedidos.filter(p => p.items.length > 0 && p.estado === 'Listo');
+  // Cocina solo ve lo que el garzón ya envió; los productos "sin enviar" quedan ocultos
+  const pedidosEnviados = pedidos
+    .map(p => ({ ...p, items: p.items.filter(item => item.estado !== 'Borrador') }))
+    .filter(p => p.items.length > 0);
+
+  const pedidosCocina = pedidosEnviados.filter(p => p.estado !== 'Listo');
+  const pedidosListos = pedidosEnviados.filter(p => p.estado === 'Listo');
 
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">

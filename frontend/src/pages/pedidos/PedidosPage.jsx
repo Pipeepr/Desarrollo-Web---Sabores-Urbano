@@ -1,50 +1,137 @@
-import { useState, useEffect } from 'react';
-import { clientesData } from '../../data/clientesData';
-import { mesasIniciales as mesasData } from '../../data/mesasData';
-import { productosIniciales as productosData } from '../../data/menuData';
-import { Plus, Trash2, CheckCircle, AlertCircle, ShoppingBag } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Trash2, CheckCircle, AlertCircle, ShoppingBag, Send } from 'lucide-react';
+import { useAuth } from '../../auth/useAuth';
+import { obtenerClientes } from '../../services/clientesService';
+import { obtenerMesas } from '../../services/mesasService';
+import { obtenerProductos } from '../../services/productosService';
 import {
   obtenerPedidos,
   crearPedido,
-  actualizarPedido,
-  eliminarPedido,
+  agregarProductoPedido,
+  quitarProductoPedido,
+  enviarComandaACocina,
+  cambiarEstadoPedido,
   obtenerIdPedido,
+  ESTADOS_PEDIDO_ABIERTO,
 } from '../../services/pedidosService';
 
-// Identificador único para cada producto agregado a la comanda
-const generarIdItem = () => Date.now();
+// Estados de mesa en los que no se puede abrir un pedido
+const ESTADOS_MESA_BLOQUEADOS = ['fuera', 'limpieza'];
+
+// Productos que el garzón aún puede quitar: sin enviar, o enviados que cocina no empezó
+const ESTADOS_ITEM_QUITABLES = ['Borrador', 'Pendiente'];
+
+// Cómo se muestra al garzón el estado de cada producto
+const ETIQUETA_ITEM = {
+  Borrador: 'Sin enviar',
+  Pendiente: 'Enviado',
+  Preparando: 'Preparando',
+  Listo: 'Listo',
+};
+
+// Cada cuánto se refrescan pedidos y mesas (para ver cambios de Cocina y Mesas)
+const INTERVALO_REFRESCO_MS = 5000;
 
 export default function PedidosPage() {
+  const { session } = useAuth();
+  const token = session?.token;
+
   const [pedidos, setPedidos] = useState([]);
+  const [mesas, setMesas] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [mesaId, setMesaId] = useState('');
   const [clienteId, setClienteId] = useState('');
-  
-  const pedidoActual = pedidos.find(p => String(p.mesaId) === String(mesaId) && p.estado !== 'Pagado');
+
+  const pedidoActual = pedidos.find(
+    p => String(p.mesaId) === String(mesaId) && ESTADOS_PEDIDO_ABIERTO.includes(p.estado)
+  );
 
   const [productoId, setProductoId] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [observaciones, setObservaciones] = useState('');
   const [error, setError] = useState('');
+  const [mensaje, setMensaje] = useState('');
+  const [enviando, setEnviando] = useState(false);
+
+  // Pedidos abiertos y mesas cambian desde otras pantallas: se recargan juntos
+  const cargarPedidosYMesas = useCallback(async () => {
+    const [pedidosApi, mesasApi] = await Promise.all([
+      obtenerPedidos(token, ESTADOS_PEDIDO_ABIERTO),
+      obtenerMesas(),
+    ]);
+    setPedidos(pedidosApi);
+    setMesas(mesasApi);
+  }, [token]);
 
   useEffect(() => {
     let activo = true;
 
-    obtenerPedidos()
+    const refrescar = () =>
+      cargarPedidosYMesas().catch(err => {
+        if (activo) setError(err.message);
+      });
+
+    refrescar();
+    obtenerProductos()
       .then(data => {
-        if (activo) setPedidos(data);
+        if (activo) setProductos(data);
       })
       .catch(err => {
         if (activo) setError(err.message);
       });
 
+    const intervalo = setInterval(refrescar, INTERVALO_REFRESCO_MS);
+    return () => {
+      activo = false;
+      clearInterval(intervalo);
+    };
+  }, [cargarPedidosYMesas]);
+
+  useEffect(() => {
+    let activo = true;
+
+    obtenerClientes(token)
+      .then(data => {
+        if (activo) setClientes(data);
+      })
+      .catch(() => {
+        if (activo) setClientes([]);
+      });
+
     return () => {
       activo = false;
     };
-  }, []);
+  }, [token]);
+
+  const productosDisponibles = productos.filter(p => p.disponible);
+  const productosSinEnviar = pedidoActual
+    ? pedidoActual.items.filter(item => item.estado === 'Borrador').length
+    : 0;
+  const mesaSeleccionada = mesas.find(m => String(m.id) === String(mesaId));
 
   const reemplazarPedido = (pedidoActualizado) => {
     const id = obtenerIdPedido(pedidoActualizado);
     setPedidos(prev => prev.map(p => (obtenerIdPedido(p) === id ? pedidoActualizado : p)));
+  };
+
+  // Ejecuta una operación mostrando el error del backend si falla
+  const ejecutar = async (operacion, mensajeExito = '') => {
+    setEnviando(true);
+    try {
+      await operacion();
+      setError('');
+      setMensaje(mensajeExito);
+      return true;
+    } catch (err) {
+      setMensaje('');
+      setError(err.message);
+      // Puede que otro usuario haya cambiado el pedido: se recarga para mostrar lo real
+      cargarPedidosYMesas().catch(() => {});
+      return false;
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const handleAbrirPedido = async () => {
@@ -52,31 +139,25 @@ export default function PedidosPage() {
       setError('Debes seleccionar una mesa');
       return;
     }
-    
+
     if (pedidoActual) {
       setError('Esta mesa ya tiene un pedido principal abierto.');
       return;
     }
 
-    const mesa = mesasData.find(m => String(m.id) === String(mesaId));
-    const cliente = clientesData.find(c => String(c.id) === String(clienteId));
+    if (mesaSeleccionada && ESTADOS_MESA_BLOQUEADOS.includes(mesaSeleccionada.estado)) {
+      setError(`La mesa ${mesaSeleccionada.numero} no puede recibir pedidos (estado: ${mesaSeleccionada.estado}).`);
+      return;
+    }
 
-    const nuevoPedido = {
-      mesaId: mesa.id,
-      mesaNombre: mesa.numero,
-      cliente: cliente ? cliente.nombre : 'Sin especificar',
-      estado: 'Pendiente',
-      hora: new Date().toLocaleTimeString(),
-      items: [],
-      total: 0
-    };
+    const ok = await ejecutar(
+      () => crearPedido(token, { mesaId, clienteId }),
+      `Pedido abierto para la mesa ${mesaSeleccionada?.numero ?? mesaId}.`
+    );
 
-    try {
-      const pedidoCreado = await crearPedido(nuevoPedido);
-      setPedidos(prev => [...prev, pedidoCreado]);
-      setError('');
-    } catch (err) {
-      setError(`Error al guardar el pedido: ${err.message}`);
+    if (ok) {
+      setClienteId('');
+      await cargarPedidosYMesas().catch(() => {});
     }
   };
 
@@ -85,76 +166,60 @@ export default function PedidosPage() {
     if (!pedidoActual) return;
 
     const cantidadNumero = Number(cantidad);
-    if (!productoId || !Number.isInteger(cantidadNumero) || cantidadNumero < 1) {
-      setError('Selecciona un producto y cantidad válida.');
+    if (!productoId) {
+      setError('Selecciona un producto.');
+      return;
+    }
+    if (!Number.isInteger(cantidadNumero) || cantidadNumero < 1 || cantidadNumero > 50) {
+      setError('La cantidad debe ser un número entero entre 1 y 50.');
       return;
     }
 
-    const producto = productosData.find(p => String(p.id) === String(productoId));
-    
-    const nuevoItem = {
-      id: generarIdItem(),
-      productoId: producto.id,
-      nombre: producto.nombre,
-      precio: producto.precio,
-      cantidad: cantidadNumero,
-      observaciones: observaciones,
-      estado: 'Pendiente'
-    };
+    const ok = await ejecutar(async () => {
+      reemplazarPedido(
+        await agregarProductoPedido(token, obtenerIdPedido(pedidoActual), {
+          productoId: Number(productoId),
+          cantidad: cantidadNumero,
+          observaciones,
+        })
+      );
+    }, 'Producto agregado a la comanda. Aún no se envía a cocina.');
 
-    const datosActualizados = {
-      estado: 'Pendiente',
-      items: [...pedidoActual.items, nuevoItem],
-      total: pedidoActual.total + (nuevoItem.precio * nuevoItem.cantidad)
-    };
-
-    try {
-      reemplazarPedido(await actualizarPedido(obtenerIdPedido(pedidoActual), datosActualizados));
+    if (ok) {
       setProductoId('');
       setCantidad(1);
       setObservaciones('');
-      setError('');
-    } catch (err) {
-      setError(`Error al agregar producto: ${err.message}`);
     }
   };
 
-  const handleEliminarItem = async (pedidoId, itemId) => {
-    const itemToRemove = pedidoActual.items.find(i => i.id === itemId);
-    const datosActualizados = {
-      items: pedidoActual.items.filter(i => i.id !== itemId),
-      total: pedidoActual.total - (itemToRemove.precio * itemToRemove.cantidad)
-    };
+  const handleEliminarItem = (pedidoId, itemId) =>
+    ejecutar(async () => {
+      reemplazarPedido(await quitarProductoPedido(token, pedidoId, itemId));
+    }, 'Producto quitado del pedido.');
 
-    try {
-      reemplazarPedido(await actualizarPedido(pedidoId, datosActualizados));
-      setError('');
-    } catch (err) {
-      setError(`Error al eliminar producto: ${err.message}`);
-    }
-  };
+  const handleEnviarACocina = (pedidoId) =>
+    ejecutar(async () => {
+      reemplazarPedido(await enviarComandaACocina(token, pedidoId));
+    }, 'Comanda enviada a cocina.');
 
   const handleCerrarPedido = async (pedidoId) => {
-    if (window.confirm('¿Estás seguro de cobrar este pedido y liberar la mesa?')) {
-      try {
-        reemplazarPedido(await actualizarPedido(pedidoId, { estado: 'Pagado' }));
-        setError('');
-      } catch (err) {
-        setError(`Error al cerrar el pedido: ${err.message}`);
-      }
-    }
+    if (!window.confirm('¿Cobrar este pedido? La mesa quedará pendiente de limpieza.')) return;
+
+    const ok = await ejecutar(
+      () => cambiarEstadoPedido(token, pedidoId, 'Pagado'),
+      'Pedido cobrado. La mesa quedó pendiente de limpieza.'
+    );
+    if (ok) await cargarPedidosYMesas().catch(() => {});
   };
 
-  const handleEliminarPedido = async (pedidoId) => {
-    if (window.confirm('¿Deseas cancelar y eliminar este pedido?')) {
-      try {
-        await eliminarPedido(pedidoId);
-        setPedidos(prev => prev.filter(p => obtenerIdPedido(p) !== pedidoId));
-        setError('');
-      } catch (err) {
-        setError(`Error al eliminar el pedido: ${err.message}`);
-      }
-    }
+  const handleCancelarPedido = async (pedidoId) => {
+    if (!window.confirm('¿Cancelar este pedido? Quedará registrado como cancelado y la mesa volverá a estar disponible.')) return;
+
+    const ok = await ejecutar(
+      () => cambiarEstadoPedido(token, pedidoId, 'Cancelado'),
+      'Pedido cancelado.'
+    );
+    if (ok) await cargarPedidosYMesas().catch(() => {});
   };
 
   return (
@@ -165,6 +230,13 @@ export default function PedidosPage() {
           Pedidos Garzón
         </h1>
         <p className="text-gray-600 mb-8">Abre pedidos por mesa y gestiona los productos solicitados.</p>
+
+        {mensaje && !error && (
+          <div className="bg-green-50 border-l-4 border-status-disponible p-4 mb-6 rounded flex items-center gap-3" role="status">
+            <CheckCircle className="text-status-disponible w-5 h-5" />
+            <p className="text-status-disponible font-medium">{mensaje}</p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border-l-4 border-status-ocupado p-4 mb-6 rounded flex items-center gap-3">
@@ -188,8 +260,14 @@ export default function PedidosPage() {
                   onChange={(e) => setMesaId(e.target.value)}
                 >
                   <option value="">-- Seleccione Mesa --</option>
-                  {mesasData.map(m => (
-                    <option key={m.id} value={m.id}>{m.numero} ({m.estado})</option>
+                  {mesas.map(m => (
+                    <option
+                      key={m.id}
+                      value={m.id}
+                      disabled={ESTADOS_MESA_BLOQUEADOS.includes(m.estado) && m.id !== mesaId}
+                    >
+                      {m.numero} ({m.estado})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -203,15 +281,17 @@ export default function PedidosPage() {
                   disabled={pedidoActual}
                 >
                   <option value="">-- Consumidor Final --</option>
-                  {clientesData.map(c => (
+                  {clientes.map(c => (
                     <option key={c.id} value={c.id}>{c.nombre}</option>
                   ))}
                 </select>
+
               </div>
 
               {!pedidoActual ? (
                 <button 
                   onClick={handleAbrirPedido}
+                  disabled={enviando}
                   className="mt-4 w-full bg-brand-primary text-white py-2 px-4 min-h-[44px] rounded-md font-medium hover:opacity-90 transition-colors flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
@@ -249,7 +329,7 @@ export default function PedidosPage() {
                     <div className="md:col-span-12 mb-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">1. Selecciona el Producto</label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {productosData.map(p => (
+                        {productosDisponibles.map(p => (
                           <div 
                             key={p.id}
                             onClick={() => setProductoId(p.id)}
@@ -291,6 +371,7 @@ export default function PedidosPage() {
                   </div>
                   <button 
                     type="submit"
+                    disabled={enviando}
                     className="mt-4 w-full md:w-auto bg-brand-secondary text-white py-2 px-6 min-h-[44px] rounded-md font-medium hover:opacity-90 transition-colors"
                   >
                     Agregar a la Comanda
@@ -305,6 +386,7 @@ export default function PedidosPage() {
                         <th className="py-3 px-2">Cant.</th>
                         <th className="py-3 px-2">Producto</th>
                         <th className="py-3 px-2">Observaciones</th>
+                        <th className="py-3 px-2">Cocina</th>
                         <th className="py-3 px-2">P. Unit</th>
                         <th className="py-3 px-2">Total</th>
                         <th className="py-3 px-2 text-center">Acción</th>
@@ -313,7 +395,7 @@ export default function PedidosPage() {
                     <tbody>
                       {pedidoActual.items.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="py-8 text-center text-gray-500">
+                          <td colSpan="7" className="py-8 text-center text-gray-500">
                             Aún no hay productos en este pedido.
                           </td>
                         </tr>
@@ -323,16 +405,24 @@ export default function PedidosPage() {
                             <td className="py-3 px-2 font-medium">{item.cantidad}</td>
                             <td className="py-3 px-2">{item.nombre}</td>
                             <td className="py-3 px-2 text-sm text-gray-500 italic">{item.observaciones || '-'}</td>
+                            <td className={`py-3 px-2 text-sm ${item.estado === 'Borrador' ? 'text-brand-secondary font-semibold' : ''}`}>
+                              {ETIQUETA_ITEM[item.estado] ?? item.estado}
+                            </td>
                             <td className="py-3 px-2">${item.precio.toLocaleString()}</td>
                             <td className="py-3 px-2 font-medium">${(item.precio * item.cantidad).toLocaleString()}</td>
                             <td className="py-3 px-2 text-center">
+                              {ESTADOS_ITEM_QUITABLES.includes(item.estado) ? (
                               <button 
                                 onClick={() => handleEliminarItem(obtenerIdPedido(pedidoActual), item.id)}
+                                disabled={enviando}
                                 className="text-red-500 hover:text-red-700 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors mx-auto"
                                 title="Eliminar"
                               >
                                 <Trash2 className="w-5 h-5" />
                               </button>
+                              ) : (
+                                <span className="text-xs text-gray-400" title="Cocina ya lo empezó; no se puede quitar">En cocina</span>
+                              )}
                             </td>
                           </tr>
                         ))
@@ -341,7 +431,7 @@ export default function PedidosPage() {
                     {pedidoActual.items.length > 0 && (
                       <tfoot>
                         <tr className="font-bold text-lg text-brand-primary">
-                          <td colSpan="4" className="py-4 px-2 text-right">Total:</td>
+                          <td colSpan="5" className="py-4 px-2 text-right">Total:</td>
                           <td colSpan="2" className="py-4 px-2">${pedidoActual.total.toLocaleString()}</td>
                         </tr>
                       </tfoot>
@@ -349,10 +439,31 @@ export default function PedidosPage() {
                   </table>
                 </div>
 
+                {/* Confirmar la comanda: hasta aquí cocina no ve los productos nuevos */}
+                {productosSinEnviar > 0 && (
+                  <div className="mt-6 p-4 rounded-lg border border-brand-secondary/40 bg-orange-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p className="text-sm text-gray-700 m-0">
+                      {productosSinEnviar === 1
+                        ? 'Hay 1 producto sin enviar.'
+                        : `Hay ${productosSinEnviar} productos sin enviar.`}{' '}
+                      Revisa la comanda con el cliente y envíala cuando esté completa.
+                    </p>
+                    <button
+                      onClick={() => handleEnviarACocina(obtenerIdPedido(pedidoActual))}
+                      disabled={enviando}
+                      className="bg-brand-secondary text-white py-2.5 px-6 min-h-[44px] rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                      <Send className="w-5 h-5" />
+                      Enviar a cocina
+                    </button>
+                  </div>
+                )}
+
                 {/* Botones para cancelar o cobrar pedido */}
                 <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center gap-4">
                   <button
-                    onClick={() => handleEliminarPedido(obtenerIdPedido(pedidoActual))}
+                    onClick={() => handleCancelarPedido(obtenerIdPedido(pedidoActual))}
+                    disabled={enviando}
                     className="text-red-600 hover:bg-red-50 py-2.5 px-4 min-h-[44px] rounded-lg font-medium flex items-center gap-2 transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -362,10 +473,12 @@ export default function PedidosPage() {
                   {pedidoActual.items.length > 0 && (
                     <button 
                       onClick={() => handleCerrarPedido(obtenerIdPedido(pedidoActual))}
-                      className="bg-brand-primary text-white py-3 px-8 min-h-[44px] rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2"
+                      disabled={enviando || productosSinEnviar > 0}
+                      title={productosSinEnviar > 0 ? 'Envía o quita los productos sin enviar antes de cobrar' : undefined}
+                      className="bg-brand-primary text-white py-3 px-8 min-h-[44px] rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <CheckCircle className="w-5 h-5" />
-                      Cobrar y Liberar Mesa
+                      Cobrar pedido
                     </button>
                   )}
                 </div>

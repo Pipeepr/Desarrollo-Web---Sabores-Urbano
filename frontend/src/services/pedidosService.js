@@ -1,55 +1,55 @@
 // Servicio de integración con el backend - RF9, RF10 y RF11 (Pedidos y Cocina)
+// Todas las operaciones requieren sesión: el backend valida el rol de cada acción.
+import { requestJson } from "./api";
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api"
-).replace(/\/+$/, "");
-
-const PEDIDOS_URL = `${API_BASE_URL}/pedidos`;
-
-async function request(url, { method = "GET", body } = {}) {
-  let respuesta;
-  try {
-    respuesta = await fetch(url, {
-      method,
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-  } catch (error) {
-    throw new Error(
-      "No se pudo conectar con el servidor. Verifica que el backend esté disponible.",
-      { cause: error },
-    );
-  }
-
-  let datos = null;
-  try {
-    datos = await respuesta.json();
-  } catch {
-    // Respuesta sin cuerpo JSON
-  }
-
-  if (!respuesta.ok) {
-    throw new Error(datos?.mensaje || "La solicitud no pudo completarse.");
-  }
-
-  return datos;
+export function obtenerPedidos(token, estados) {
+  const filtro = estados?.length ? `?estado=${estados.join(",")}` : "";
+  return requestJson(`/pedidos${filtro}`, { token });
 }
 
-export function obtenerPedidos() {
-  return request(PEDIDOS_URL);
+// RF9: abrir pedido para una mesa (cliente opcional)
+export function crearPedido(token, { mesaId, clienteId }) {
+  return requestJson("/pedidos", {
+    method: "POST",
+    token,
+    body: { mesaId, clienteId: clienteId || null },
+  });
 }
 
-export function crearPedido(pedido) {
-  return request(PEDIDOS_URL, { method: "POST", body: pedido });
+// RF10: el precio lo pone el servidor desde el menú vigente
+export function agregarProductoPedido(token, pedidoId, { productoId, cantidad, observaciones }) {
+  return requestJson(`/pedidos/${pedidoId}/items`, {
+    method: "POST",
+    token,
+    body: { productoId, cantidad, observaciones },
+  });
 }
 
-export function actualizarPedido(id, cambios) {
-  return request(`${PEDIDOS_URL}/${id}`, { method: "PUT", body: cambios });
+export function quitarProductoPedido(token, pedidoId, itemId) {
+  return requestJson(`/pedidos/${pedidoId}/items/${itemId}`, {
+    method: "DELETE",
+    token,
+  });
 }
 
-export function eliminarPedido(id) {
-  return request(`${PEDIDOS_URL}/${id}`, { method: "DELETE" });
+// Confirma la comanda: los productos sin enviar pasan a cocina de una vez
+export function enviarComandaACocina(token, pedidoId) {
+  return requestJson(`/pedidos/${pedidoId}/enviar`, {
+    method: "POST",
+    token,
+  });
 }
+
+// Preparando / Listo (cocina), Pagado / Cancelado (salón)
+export function cambiarEstadoPedido(token, pedidoId, estado) {
+  return requestJson(`/pedidos/${pedidoId}/estado`, {
+    method: "PATCH",
+    token,
+    body: { estado },
+  });
+}
+
+export const ESTADOS_PEDIDO_ABIERTO = ["Pendiente", "Preparando", "Listo"];
 
 export function obtenerIdPedido(pedido) {
   return pedido._id || pedido.id;
