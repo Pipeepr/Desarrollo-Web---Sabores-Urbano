@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { ChefHat, Check, UtensilsCrossed } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChefHat, Check, UtensilsCrossed, AlertCircle } from 'lucide-react';
 import PedidoCard from '../../components/PedidoCard';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/pedidos';
+import {
+  obtenerPedidos,
+  actualizarPedido,
+  obtenerIdPedido,
+} from '../../services/pedidosService';
 
 export default function CocinaPage() {
   const [pedidos, setPedidos] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const loadPedidos = async () => {
       try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        setPedidos(data);
-      } catch (error) {
-        console.error('Error al cargar pedidos:', error);
+        setPedidos(await obtenerPedidos());
+        setError('');
+      } catch (err) {
+        setError(err.message);
       }
     };
 
@@ -24,7 +27,7 @@ export default function CocinaPage() {
   }, []);
 
   const handleUpdateStatus = async (pedidoId, nuevoEstado) => {
-    const pedido = pedidos.find(p => (p._id || p.id) === pedidoId);
+    const pedido = pedidos.find(p => obtenerIdPedido(p) === pedidoId);
     if (!pedido) return;
 
     const itemsActualizados = pedido.items.map(item => {
@@ -34,15 +37,11 @@ export default function CocinaPage() {
     });
 
     try {
-      const res = await fetch(`${API_URL}/${pedidoId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: nuevoEstado, items: itemsActualizados })
-      });
-      const pedidoActualizado = await res.json();
-      setPedidos(pedidos.map(p => ((p._id || p.id) === pedidoId ? pedidoActualizado : p)));
-    } catch (error) {
-      console.error('Error al actualizar estado:', error);
+      const pedidoActualizado = await actualizarPedido(pedidoId, { estado: nuevoEstado, items: itemsActualizados });
+      setPedidos(prev => prev.map(p => (obtenerIdPedido(p) === pedidoId ? pedidoActualizado : p)));
+      setError('');
+    } catch (err) {
+      setError(`Error al actualizar estado: ${err.message}`);
     }
   };
 
@@ -76,6 +75,13 @@ export default function CocinaPage() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border-l-4 border-status-ocupado p-4 mb-6 rounded flex items-center gap-3">
+            <AlertCircle className="text-status-ocupado w-5 h-5" />
+            <p className="text-status-ocupado font-medium">{error}</p>
+          </div>
+        )}
+
         <h2 className="text-2xl text-brand-primary mb-6 border-b-2 border-brand-primary pb-2 inline-block font-bold">Pedidos Activos</h2>
 
         {pedidosCocina.length === 0 ? (
@@ -87,7 +93,7 @@ export default function CocinaPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {pedidosCocina.map(pedido => (
-              <PedidoCard key={pedido._id || pedido.id} pedido={pedido} onUpdateStatus={handleUpdateStatus} />
+              <PedidoCard key={obtenerIdPedido(pedido)} pedido={pedido} onUpdateStatus={handleUpdateStatus} />
             ))}
           </div>
         )}
@@ -97,7 +103,7 @@ export default function CocinaPage() {
             <h2 className="text-2xl text-gray-600 mb-6 border-b-2 border-gray-200 pb-2 inline-block font-bold">Recientemente Listos</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 opacity-70">
               {pedidosListos.map(pedido => (
-                <div key={pedido._id || pedido.id} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center border border-gray-200">
+                <div key={obtenerIdPedido(pedido)} className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center border border-gray-200">
                   <div>
                     <h4 className="font-bold text-gray-800">{pedido.mesaNombre}</h4>
                     <p className="text-sm text-gray-500">{pedido.items.length} productos</p>
