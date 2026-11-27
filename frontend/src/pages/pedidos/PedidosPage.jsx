@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { clientesData } from '../../data/clientesData';
 import { mesasIniciales as mesasData } from '../../data/mesasData';
 import { productosIniciales as productosData } from '../../data/menuData';
 import { Plus, Trash2, CheckCircle, AlertCircle, ShoppingBag } from 'lucide-react';
+import {
+  obtenerPedidos,
+  crearPedido,
+  actualizarPedido,
+  eliminarPedido,
+  obtenerIdPedido,
+} from '../../services/pedidosService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/pedidos';
+// Identificador único para cada producto agregado a la comanda
+const generarIdItem = () => Date.now();
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState([]);
@@ -18,19 +26,26 @@ export default function PedidosPage() {
   const [observaciones, setObservaciones] = useState('');
   const [error, setError] = useState('');
 
-  const cargarPedidos = async () => {
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      setPedidos(data);
-    } catch (err) {
-      console.error('Error al cargar pedidos:', err);
-    }
-  };
-
   useEffect(() => {
-    cargarPedidos();
+    let activo = true;
+
+    obtenerPedidos()
+      .then(data => {
+        if (activo) setPedidos(data);
+      })
+      .catch(err => {
+        if (activo) setError(err.message);
+      });
+
+    return () => {
+      activo = false;
+    };
   }, []);
+
+  const reemplazarPedido = (pedidoActualizado) => {
+    const id = obtenerIdPedido(pedidoActualizado);
+    setPedidos(prev => prev.map(p => (obtenerIdPedido(p) === id ? pedidoActualizado : p)));
+  };
 
   const handleAbrirPedido = async () => {
     if (!mesaId) {
@@ -57,36 +72,32 @@ export default function PedidosPage() {
     };
 
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoPedido)
-      });
-      const pedidoCreado = await res.json();
-      setPedidos([...pedidos, pedidoCreado]);
+      const pedidoCreado = await crearPedido(nuevoPedido);
+      setPedidos(prev => [...prev, pedidoCreado]);
       setError('');
     } catch (err) {
-      setError('Error al guardar el pedido');
+      setError(`Error al guardar el pedido: ${err.message}`);
     }
   };
 
   const handleAgregarProducto = async (e) => {
     e.preventDefault();
     if (!pedidoActual) return;
-    if (!productoId || cantidad < 1) {
+
+    const cantidadNumero = Number(cantidad);
+    if (!productoId || !Number.isInteger(cantidadNumero) || cantidadNumero < 1) {
       setError('Selecciona un producto y cantidad válida.');
       return;
     }
 
     const producto = productosData.find(p => String(p.id) === String(productoId));
-    const pedidoId = pedidoActual._id || pedidoActual.id;
     
     const nuevoItem = {
-      id: Date.now(),
+      id: generarIdItem(),
       productoId: producto.id,
       nombre: producto.nombre,
       precio: producto.precio,
-      cantidad: parseInt(cantidad),
+      cantidad: cantidadNumero,
       observaciones: observaciones,
       estado: 'Pendiente'
     };
@@ -98,19 +109,13 @@ export default function PedidosPage() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/${pedidoId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosActualizados)
-      });
-      const pedidoActualizado = await res.json();
-      setPedidos(pedidos.map(p => ((p._id || p.id) === pedidoId ? pedidoActualizado : p)));
+      reemplazarPedido(await actualizarPedido(obtenerIdPedido(pedidoActual), datosActualizados));
       setProductoId('');
       setCantidad(1);
       setObservaciones('');
       setError('');
     } catch (err) {
-      setError('Error al agregar producto');
+      setError(`Error al agregar producto: ${err.message}`);
     }
   };
 
@@ -122,30 +127,20 @@ export default function PedidosPage() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/${pedidoId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosActualizados)
-      });
-      const pedidoActualizado = await res.json();
-      setPedidos(pedidos.map(p => ((p._id || p.id) === pedidoId ? pedidoActualizado : p)));
+      reemplazarPedido(await actualizarPedido(pedidoId, datosActualizados));
+      setError('');
     } catch (err) {
-      setError('Error al eliminar producto');
+      setError(`Error al eliminar producto: ${err.message}`);
     }
   };
 
   const handleCerrarPedido = async (pedidoId) => {
     if (window.confirm('¿Estás seguro de cobrar este pedido y liberar la mesa?')) {
       try {
-        const res = await fetch(`${API_URL}/${pedidoId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'Pagado' })
-        });
-        const pedidoActualizado = await res.json();
-        setPedidos(pedidos.map(p => ((p._id || p.id) === pedidoId ? pedidoActualizado : p)));
+        reemplazarPedido(await actualizarPedido(pedidoId, { estado: 'Pagado' }));
+        setError('');
       } catch (err) {
-        setError('Error al cerrar el pedido');
+        setError(`Error al cerrar el pedido: ${err.message}`);
       }
     }
   };
@@ -153,10 +148,11 @@ export default function PedidosPage() {
   const handleEliminarPedido = async (pedidoId) => {
     if (window.confirm('¿Deseas cancelar y eliminar este pedido?')) {
       try {
-        await fetch(`${API_URL}/${pedidoId}`, { method: 'DELETE' });
-        setPedidos(pedidos.filter(p => (p._id || p.id) !== pedidoId));
+        await eliminarPedido(pedidoId);
+        setPedidos(prev => prev.filter(p => obtenerIdPedido(p) !== pedidoId));
+        setError('');
       } catch (err) {
-        setError('Error al eliminar el pedido');
+        setError(`Error al eliminar el pedido: ${err.message}`);
       }
     }
   };
@@ -331,7 +327,7 @@ export default function PedidosPage() {
                             <td className="py-3 px-2 font-medium">${(item.precio * item.cantidad).toLocaleString()}</td>
                             <td className="py-3 px-2 text-center">
                               <button 
-                                onClick={() => handleEliminarItem(pedidoActual._id || pedidoActual.id, item.id)}
+                                onClick={() => handleEliminarItem(obtenerIdPedido(pedidoActual), item.id)}
                                 className="text-red-500 hover:text-red-700 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors mx-auto"
                                 title="Eliminar"
                               >
@@ -356,7 +352,7 @@ export default function PedidosPage() {
                 {/* Botones para cancelar o cobrar pedido */}
                 <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center gap-4">
                   <button
-                    onClick={() => handleEliminarPedido(pedidoActual._id || pedidoActual.id)}
+                    onClick={() => handleEliminarPedido(obtenerIdPedido(pedidoActual))}
                     className="text-red-600 hover:bg-red-50 py-2.5 px-4 min-h-[44px] rounded-lg font-medium flex items-center gap-2 transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -365,7 +361,7 @@ export default function PedidosPage() {
 
                   {pedidoActual.items.length > 0 && (
                     <button 
-                      onClick={() => handleCerrarPedido(pedidoActual._id || pedidoActual.id)}
+                      onClick={() => handleCerrarPedido(obtenerIdPedido(pedidoActual))}
                       className="bg-brand-primary text-white py-3 px-8 min-h-[44px] rounded-lg font-bold shadow-md hover:opacity-90 transition-opacity flex items-center gap-2"
                     >
                       <CheckCircle className="w-5 h-5" />
